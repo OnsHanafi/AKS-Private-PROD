@@ -8,8 +8,8 @@
 # ------------------------------------------
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
   dns_prefix          = "${var.prefix}-dns"
 
   kubernetes_version        = var.aks_version
@@ -22,7 +22,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   default_node_pool {
     name                 = "general"
     vm_size              = var.aks_vm_size
-    vnet_subnet_id       = azurerm_subnet.subnet1.id
+    vnet_subnet_id       = azurerm_subnet.aks_subnet.id
     orchestrator_version = var.aks_version
     type                 = "VirtualMachineScaleSets"
     enable_auto_scaling = true
@@ -61,8 +61,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
 resource "azurerm_kubernetes_cluster_node_pool" "spot" {
   name                  = "spot"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
-  vm_size               = "Standard_DS2_v2"
-  vnet_subnet_id        = azurerm_subnet.subnet1.id
+  vm_size               = var.aks_vm_size
+  vnet_subnet_id        = azurerm_subnet.aks_subnet.id
   orchestrator_version  = var.aks_version
   priority              = "Spot"
   spot_max_price        = -1
@@ -127,4 +127,5 @@ resource "azurerm_role_assignment" "this" {
   scope                            = azurerm_container_registry.acr.id
   skip_service_principal_aad_check = true
 }
+
 
