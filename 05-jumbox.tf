@@ -1,79 +1,134 @@
+# ------------------------------------------
+#  AKS vnet
+# ------------------------------------------
+
+
+# ------------------------------------------
+#  CLUSTER 
+# ------------------------------------------
+resource "azurerm_kubernetes_cluster" "aks" {
+  name                = var.aks_name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  dns_prefix          = "${var.prefix}-dns"
+
+  kubernetes_version        = var.aks_version
+  automatic_channel_upgrade = "stable"
+  private_cluster_enabled = true
+  node_resource_group       = "${var.resource_group_name}-${var.aks_name}"
+  oidc_issuer_enabled       = true
+  workload_identity_enabled = true
+  
+  default_node_pool {
+    name                 = "general"
+    vm_size              = var.aks_vm_size
+    vnet_subnet_id       = azurerm_subnet.aks_subnet.id
+    orchestrator_version = var.aks_version
+    type                 = "VirtualMachineScaleSets"
+    enable_auto_scaling = true
+    node_count           = 1
+    min_count            = 1
+    max_count            = 10
+
+    node_labels = {
+      role = "generale"
+    }
+
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+    
+  }
+
+  auto_scaler_profile {
+    skip_nodes_with_local_storage = false
+  }
+  # ignore node count since enabling node autoscaling
+  lifecycle {
+    ignore_changes = [default_node_pool[0].node_count]
+  }
+
+}
+
 # -------------------------
-# # NSG JUMBOX
-# # -------------------------
-# resource "azurerm_network_security_group" "jumpbox_nsg" {
-#   name                = "jumpbox-nsg"
-#   location            = azurerm_resource_group.this.location
-#   resource_group_name = azurerm_resource_group.this.name
+# Node POOL - For Autoscaling
+# -------------------------
+resource "azurerm_kubernetes_cluster_node_pool" "spot" {
+  name                  = "spot"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
+  vm_size               = var.aks_vm_size
+  vnet_subnet_id        = azurerm_subnet.aks_subnet.id
+  orchestrator_version  = var.aks_version
+  priority              = "Spot"
+  spot_max_price        = -1
+  eviction_policy       = "Delete"
 
-#   security_rule {
-#     name                       = "SSH"
-#     priority                   = 100
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "22"
-#     source_address_prefix      = "*"
-#     destination_address_prefix = "*"
-#   }
-# }
+  enable_auto_scaling = true
+  node_count          = 1
+  min_count           = 1
+  max_count           = 10
 
-# resource "azurerm_subnet_network_security_group_association" "jumpbox_assoc" {
-#   subnet_id                 = azurerm_subnet.vm_subnet.id
-#   network_security_group_id = azurerm_network_security_group.jumpbox_nsg.id
-# }
+  node_labels = {
+    role                                    = "spot"
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
+  
 
-# # PUBLIC IP
-# resource "azurerm_public_ip" "jumpbox_ip" {
-#   name                = "jumpbox-pip"
-#   location            = azurerm_resource_group.this.location
-#   resource_group_name = azurerm_resource_group.this.name
-#   allocation_method   = "Static"
-# }
+  node_taints = [
+    "spot:NoSchedule",
+    "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
+  ]
 
-# # -------------------------
-# # JUMBOX VM
-# # -------------------------
 
-# resource "azurerm_network_interface" "jumpbox_nic" {
-#   name                = "jumpbox-nic"
-#   location            = azurerm_resource_group.this.location
-#   resource_group_name = azurerm_resource_group.this.name
-#   ip_configuration {
-#     name                          = "internal"
-#     subnet_id                     = azurerm_subnet.vm_subnet.id
-#     private_ip_address_allocation = "Dynamic"
-#     public_ip_address_id           = azurerm_public_ip.jumpbox_ip.id
-#   }
-# }
+  
 
-# resource "azurerm_linux_virtual_machine" "jumpbox" {
-#   name                = "jumpbox"
-#   resource_group_name = azurerm_resource_group.this.name
-#   location            = azurerm_resource_group.this.location
-#   size                = var.jumpbox_size
-#   admin_username      = "azureuser"
+  lifecycle {
+    ignore_changes = [node_count]
+  }
+}
 
-#   network_interface_ids = [azurerm_network_interface.jumpbox_nic.id]
 
-#   admin_ssh_key {
-#     username   = "azureuser"
-#     public_key = file("~/.ssh/id_rsa.pub")
-#   }
+# -------------------------
+# VNet Peering
+# -------------------------
+resource "azurerm_virtual_network_peering" "vm_to_aks" {
+  name                      = "vm-to-aks"
+  resource_group_name       = azurerm_resource_group.this.name
+  virtual_network_name      = azurerm_virtual_network.vm_vnet.name
+  remote_virtual_network_id = azurerm_virtual_network.aks_vnet.id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit         = false
+  use_remote_gateways           = false
+}
 
-#   os_disk {
-#     caching              = "ReadWrite"
-#     storage_account_type = "Standard_LRS"
-#   }
+resource "azurerm_virtual_network_peering" "aks_to_vm" {
+  name                      = "aks-to-vm"
+  resource_group_name       = azurerm_resource_group.this.name
+  virtual_network_name      = azurerm_virtual_network.aks_vnet.name
+  remote_virtual_network_id = azurerm_virtual_network.vm_vnet.id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit         = false
+  use_remote_gateways           = false
+}
 
-#   source_image_reference {
-#     publisher = "Canonical"
-#     offer     = "UbuntuServer"
-#     sku       = "22_04-lts"
-#     version   = "latest"
-#   }
+# ------------------------------------------
+#  ACR Connection  
+# ------------------------------------------
+resource "azurerm_role_assignment" "this" {
+  principal_id                     = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  role_definition_name             = "AcrPull"
+  scope                            = azurerm_container_registry.acr.id
+  skip_service_principal_aad_check = true
+}
 
-# }
+
+
 
 
