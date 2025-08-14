@@ -27,8 +27,8 @@ resource "azurerm_subnet_network_security_group_association" "jumpbox_assoc" {
 # PUBLIC IP
 resource "azurerm_public_ip" "jumpbox_ip" {
   name                = "jumpbox-pip"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
   allocation_method   = "Static"
 }
 
@@ -38,8 +38,8 @@ resource "azurerm_public_ip" "jumpbox_ip" {
 
 resource "azurerm_network_interface" "jumpbox_nic" {
   name                = "jumpbox-nic"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
   ip_configuration {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.vm_subnet.id
@@ -50,8 +50,8 @@ resource "azurerm_network_interface" "jumpbox_nic" {
 
 resource "azurerm_linux_virtual_machine" "jumpbox" {
   name                = "jumpbox"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
   size                = var.jumpbox_size
   admin_username      = "azureuser"
 
@@ -75,3 +75,4 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
   }
 
 }
+
