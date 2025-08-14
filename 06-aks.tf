@@ -1,0 +1,130 @@
+# ------------------------------------------
+#  AKS vnet
+# ------------------------------------------
+
+
+# ------------------------------------------
+#  CLUSTER 
+# ------------------------------------------
+resource "azurerm_kubernetes_cluster" "aks" {
+  name                = var.aks_name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  dns_prefix          = "${var.prefix}-dns"
+
+  kubernetes_version        = var.aks_version
+  automatic_channel_upgrade = "stable"
+  private_cluster_enabled = true
+  node_resource_group       = "${var.resource_group_name}-${var.aks_name}"
+  oidc_issuer_enabled       = true
+  workload_identity_enabled = true
+  
+  default_node_pool {
+    name                 = "general"
+    vm_size              = var.aks_vm_size
+    vnet_subnet_id       = azurerm_subnet.subnet1.id
+    orchestrator_version = var.aks_version
+    type                 = "VirtualMachineScaleSets"
+    enable_auto_scaling = true
+    node_count           = 1
+    min_count            = 1
+    max_count            = 10
+
+    node_labels = {
+      role = "generale"
+    }
+
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+    
+  }
+
+  auto_scaler_profile {
+    skip_nodes_with_local_storage = false
+  }
+  # ignore node count since enabling node autoscaling
+  lifecycle {
+    ignore_changes = [default_node_pool[0].node_count]
+  }
+
+}
+
+# -------------------------
+# Node POOL - For Autoscaling
+# -------------------------
+resource "azurerm_kubernetes_cluster_node_pool" "spot" {
+  name                  = "spot"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
+  vm_size               = "Standard_DS2_v2"
+  vnet_subnet_id        = azurerm_subnet.subnet1.id
+  orchestrator_version  = var.aks_version
+  priority              = "Spot"
+  spot_max_price        = -1
+  eviction_policy       = "Delete"
+
+  enable_auto_scaling = true
+  node_count          = 1
+  min_count           = 1
+  max_count           = 10
+
+  node_labels = {
+    role                                    = "spot"
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
+  
+
+  node_taints = [
+    "spot:NoSchedule",
+    "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
+  ]
+
+
+  
+
+  lifecycle {
+    ignore_changes = [node_count]
+  }
+}
+
+
+# -------------------------
+# VNet Peering
+# -------------------------
+resource "azurerm_virtual_network_peering" "vm_to_aks" {
+  name                      = "vm-to-aks"
+  resource_group_name       = azurerm_resource_group.rg.name
+  virtual_network_name      = azurerm_virtual_network.vm_vnet.name
+  remote_virtual_network_id = azurerm_virtual_network.aks_vnet.id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit         = false
+  use_remote_gateways           = false
+}
+
+resource "azurerm_virtual_network_peering" "aks_to_vm" {
+  name                      = "aks-to-vm"
+  resource_group_name       = azurerm_resource_group.rg.name
+  virtual_network_name      = azurerm_virtual_network.aks_vnet.name
+  remote_virtual_network_id = azurerm_virtual_network.vm_vnet.id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit         = false
+  use_remote_gateways           = false
+}
+
+# ------------------------------------------
+#  ACR Connection  
+# ------------------------------------------
+resource "azurerm_role_assignment" "this" {
+  principal_id                     = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  role_definition_name             = "AcrPull"
+  scope                            = azurerm_container_registry.acr.id
+  skip_service_principal_aad_check = true
+}
+
