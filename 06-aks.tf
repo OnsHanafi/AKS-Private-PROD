@@ -60,7 +60,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 # -------------------------
 resource "azurerm_kubernetes_cluster_node_pool" "spot" {
   name                  = "spot"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
   vm_size               = var.aks_vm_size
   vnet_subnet_id        = azurerm_subnet.aks_subnet.id
   orchestrator_version  = var.aks_version
@@ -127,5 +127,6 @@ resource "azurerm_role_assignment" "this" {
   scope                            = azurerm_container_registry.acr.id
   skip_service_principal_aad_check = true
 }
+
 
 
