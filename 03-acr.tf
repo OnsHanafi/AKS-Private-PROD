@@ -1,5 +1,5 @@
 resource "azurerm_container_registry" "acr" {
-  name                = "leadbook_acr"
+  name                = "leadbook-acr"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
   sku                 = "Basic"
@@ -15,3 +15,4 @@ resource "azurerm_container_registry" "acr" {
 #     tags                    = {}
 #   }
 }
+
