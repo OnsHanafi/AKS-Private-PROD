@@ -1,4 +1,4 @@
-data "azurerm_kubernetes_cluster" "this" {
+# data "azurerm_kubernetes_cluster" "this" {
 #     name                = "${var.aks_name}"
 #     resource_group_name = azurerm_resource_group.this.name
 # }
@@ -24,3 +24,4 @@ data "azurerm_kubernetes_cluster" "this" {
 #   values = [ file("${path.module}/values/ingress.yml") ]
 
 # }
+
