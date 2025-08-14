@@ -3,8 +3,8 @@
 # -------------------------
 resource "azurerm_network_security_group" "jumpbox_nsg" {
   name                = "jumpbox-nsg"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
 
   security_rule {
     name                       = "SSH"
@@ -73,4 +73,5 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
 }
