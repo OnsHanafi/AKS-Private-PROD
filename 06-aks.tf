@@ -53,6 +53,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
     ignore_changes = [default_node_pool[0].node_count]
   }
 
+  # SEARCH WHAT THIS DOES
+  # web_app_routing {
+  #   dns_zone_ids = []
+  # }
+
 }
 
 # -------------------------
