@@ -10,7 +10,7 @@ resource "azurerm_bastion_host" "bastion" {
   name                   = "bastion"
   resource_group_name    = azurerm_resource_group.this.name
   location               = azurerm_resource_group.this.location
-  sku                    = "Developer" # "Standard" # "Basic", "Developer"
+  sku                    = "Standard" # "Standard" # "Basic", "Developer"
   copy_paste_enabled     = true
   file_copy_enabled      = false
   shareable_link_enabled = false

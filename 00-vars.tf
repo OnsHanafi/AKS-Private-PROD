@@ -1,5 +1,5 @@
 
-variable "location" { default = "westeurope" }
+variable "location" { default = "West Europe" }
 variable "prefix" { default = "leadbook-cluster" }
 variable "resource_group_name" { default = "rg-leadbook" }
 variable "aks_version" { default = "1.29.8" }

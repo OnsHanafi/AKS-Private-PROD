@@ -60,7 +60,7 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
 
   network_interface_ids = [azurerm_network_interface.jumpbox_nic.id]
 
-  priority = "spot"
+  priority = "Spot"
   eviction_policy = "Delete"
 
   # INSTALL NEEDED TOOLS
