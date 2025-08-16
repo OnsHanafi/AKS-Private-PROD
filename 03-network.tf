@@ -27,7 +27,9 @@ resource "azurerm_virtual_network" "vm_vnet" {
 }
 
 resource "azurerm_subnet" "vm_subnet" {
-  name                 = "jumpbox-subnet"
+  #name                 = "jumpbox-subnet"
+  # CHANGING THE SUBNET NAME TO MATCH FOR BASTION	
+  name                 = "AzureBastionSubnet"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.vm_vnet.name
   address_prefixes     = ["10.1.1.0/24"]
