@@ -69,7 +69,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "spot" {
   spot_max_price        = -1
   eviction_policy       = "Delete"
 
-  enable_auto_scaling = true
+  auto_scaling_enabled = true
   node_count          = 1
   min_count           = 1
   max_count           = 10
