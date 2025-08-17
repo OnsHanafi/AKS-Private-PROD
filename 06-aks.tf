@@ -7,7 +7,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   resource_group_name = azurerm_resource_group.this.name
   dns_prefix          = "${var.prefix}-dns"
 
-  kubernetes_version        = var.aks_version
+#  kubernetes_version        = var.aks_version
   automatic_channel_upgrade = "stable"
   private_cluster_enabled = true
   node_resource_group       = "${var.resource_group_name}-${var.aks_name}"
