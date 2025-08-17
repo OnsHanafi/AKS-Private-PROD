@@ -26,6 +26,7 @@ resource "azurerm_virtual_network" "vm_vnet" {
   address_space       = ["10.1.0.0/16"]
 }
 
+# BASTION SUBNET
 resource "azurerm_subnet" "vm_subnet" {
   #name                 = "jumpbox-subnet"
   # CHANGING THE SUBNET NAME TO MATCH FOR BASTION	
@@ -34,5 +35,13 @@ resource "azurerm_subnet" "vm_subnet" {
   virtual_network_name = azurerm_virtual_network.vm_vnet.name
   address_prefixes     = ["10.1.1.0/24"]
 
+}
+
+# JUMBOX SUBNET
+resource "azurerm_subnet" "jumpbox_subnet" {
+  name                 = "jumpbox-subnet"
+  resource_group_name  = azurerm_resource_group.this.name
+  virtual_network_name = azurerm_virtual_network.vm_vnet.name
+  address_prefixes     = ["10.1.2.0/24"]
 }
 

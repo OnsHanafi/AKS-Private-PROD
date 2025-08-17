@@ -44,7 +44,7 @@ resource "azurerm_network_interface" "jumpbox_nic" {
   resource_group_name = azurerm_resource_group.this.name
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.vm_subnet.id
+    subnet_id                     = azurerm_subnet.jumpbox_subnet.id
     private_ip_address_allocation = "Dynamic"
     #  CONNECTING THROUGH BASTION
     # public_ip_address_id           = azurerm_public_ip.jumpbox_ip.id
