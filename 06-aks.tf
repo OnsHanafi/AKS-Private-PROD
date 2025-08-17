@@ -8,7 +8,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   dns_prefix          = "${var.prefix}-dns"
 
 #  kubernetes_version        = var.aks_version
-  automatic_channel_upgrade = "stable"
+  # automatic_channel_upgrade = "stable"
+  auto_upgrade_channel = "stable"
   private_cluster_enabled = true
   node_resource_group       = "${var.resource_group_name}-${var.aks_name}"
   oidc_issuer_enabled       = true
@@ -21,7 +22,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 #    orchestrator_version = var.aks_version
     type                 = "VirtualMachineScaleSets"
     enable_auto_scaling = true
-    node_count           = 1
+    # node_count           = 1
     min_count            = 1
     max_count            = 10
 
