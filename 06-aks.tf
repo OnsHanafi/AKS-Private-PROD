@@ -18,7 +18,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     name                 = "general"
     vm_size              = var.aks_vm_size
     vnet_subnet_id       = azurerm_subnet.aks_subnet.id
-    orchestrator_version = var.aks_version
+#    orchestrator_version = var.aks_version
     type                 = "VirtualMachineScaleSets"
     enable_auto_scaling = true
     node_count           = 1
@@ -63,7 +63,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "spot" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
   vm_size               = var.aks_vm_size
   vnet_subnet_id        = azurerm_subnet.aks_subnet.id
-  orchestrator_version  = var.aks_version
+#  orchestrator_version  = var.aks_version
   priority              = "Spot"
   spot_max_price        = -1
   eviction_policy       = "Delete"
