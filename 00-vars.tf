@@ -1,3 +1,6 @@
+#AZ AUTH
+variable "subscription_id" {}
+variable "tenant_id" {}
 
 variable "location" { default = "West Europe" }
 variable "prefix" { default = "leadbook-cluster" }
