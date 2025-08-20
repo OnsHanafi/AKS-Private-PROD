@@ -5,7 +5,9 @@ resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_name
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
-  dns_prefix          = "${var.prefix}-dns"
+  # NOT USED AS THIS IS A PRIVATE CLUSTER
+  # dns_prefix          = "${var.prefix}-dns"
+  private_dns_zone_id = azurerm_private_dns_zone.aks_dns.id
 
 #  kubernetes_version        = var.aks_version
   automatic_upgrade_channel = "stable"

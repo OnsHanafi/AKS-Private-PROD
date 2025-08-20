@@ -11,5 +11,6 @@ variable "aks_vm_size" {default = "Standard_B2ms"}
 variable "aks_spot_size" {default = "Standard_D2s_v3"}
 variable "jumpbox_size" { default = "Standard_F2s_v2" }
 variable "acr_name" { default = "leadbookacr" }
+variable "dns_name" { default = "privatelink.westeurope.azmk8s.io"}
 
 
